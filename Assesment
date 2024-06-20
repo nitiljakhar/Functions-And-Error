@@ -1,0 +1,35 @@
+// SPDX-License-Identifier: MIT
+pragma solidity >=0.6.12 <0.9.0;
+
+contract ErrorHandlingExample {
+uint256 public maxValue;
+uint256 public counter;
+address public owner;
+constructor(uint256 _maxValue) {
+    require(_maxValue > 0, "MAX VALUE must be greater than 0");
+    maxValue = _maxValue;
+    owner = msg.sender;
+}
+
+function updateMaxValue(uint256 _newMaxValue) public {
+    require(_newMaxValue > 0, "New MAX VALUE must be greater than 0");
+    require(msg.sender == owner, "Only owner can update MAX VALUE");
+    maxValue = _newMaxValue;
+}
+
+function incrementCounter() public {
+    counter += 1;
+    assert(counter > 0); // This should never fail under normal circumstances
+}
+
+function checkOwner(address _address) public view {
+    if (_address != owner) {
+        revert("Caller is not the owner");
+    }
+}
+
+function safeDivide(uint256 a, uint256 b) public pure returns (uint256) {
+    require(b != 0, "Cannot divide by zero");
+    return a / b;
+}
+}
