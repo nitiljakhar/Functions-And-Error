@@ -1,35 +1,69 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.6.12 <0.9.0;
 
-contract ErrorHandlingExample {
-uint256 public maxValue;
-uint256 public counter;
-address public owner;
-constructor(uint256 _maxValue) {
-    require(_maxValue > 0, "MAX VALUE must be greater than 0");
-    maxValue = _maxValue;
-    owner = msg.sender;
-}
-
-function updateMaxValue(uint256 _newMaxValue) public {
-    require(_newMaxValue > 0, "New MAX VALUE must be greater than 0");
-    require(msg.sender == owner, "Only owner can update MAX VALUE");
-    maxValue = _newMaxValue;
-}
-
-function incrementCounter() public {
-    counter += 1;
-    assert(counter > 0); // This should never fail under normal circumstances
-}
-
-function checkOwner(address _address) public view {
-    if (_address != owner) {
-        revert("Caller is not the owner");
+contract LocalStore {
+    struct Item {
+        string name;
+        uint256 price;
+        uint256 stock;
     }
-}
 
-function safeDivide(uint256 a, uint256 b) public pure returns (uint256) {
-    require(b != 0, "Cannot divide by zero");
-    return a / b;
-}
+    mapping(uint256 => Item) public items;
+    uint256 public itemCount;
+    address public owner;
+
+    event ItemAdded(uint256 itemId, string name, uint256 price, uint256 stock);
+    event ItemPurchased(uint256 itemId, uint256 quantity, address buyer);
+    event PriceUpdated(uint256 itemId, uint256 newPrice);
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only the owner can perform this action");
+        _;
+    }
+
+    function addItem(string memory name, uint256 price, uint256 stock) public onlyOwner {
+        require(bytes(name).length > 0, "Item name cannot be empty");
+        require(price > 0, "Item price must be greater than zero");
+        require(stock > 0, "Item stock must be greater than zero");
+
+        itemCount += 1;
+        items[itemCount] = Item(name, price, stock);
+        emit ItemAdded(itemCount, name, price, stock);
+    }
+
+    function updatePrice(uint256 itemId, uint256 newPrice) public onlyOwner {
+        require(newPrice > 0, "New price must be greater than zero");
+        require(items[itemId].price != 0, "Item does not exist");
+
+        items[itemId].price = newPrice;
+        emit PriceUpdated(itemId, newPrice);
+    }
+
+    function purchaseItem(uint256 itemId, uint256 quantity) public payable {
+        require(items[itemId].price != 0, "Item does not exist");
+        require(quantity > 0, "Quantity must be greater than zero");
+        require(items[itemId].stock >= quantity, "Not enough stock available");
+
+        uint256 totalPrice = items[itemId].price * quantity;
+        require(msg.value >= totalPrice, "Insufficient funds to purchase item");
+
+        items[itemId].stock -= quantity;
+        assert(items[itemId].stock >= 0); // This should never fail under normal circumstances
+
+        emit ItemPurchased(itemId, quantity, msg.sender);
+
+        if (msg.value > totalPrice) {
+            payable(msg.sender).transfer(msg.value - totalPrice); // Refund overpayment
+        }
+    }
+
+    function checkOwner(address _address) public view {
+        if (_address != owner) {
+            revert("Caller is not the owner");
+        }
+    }
 }
