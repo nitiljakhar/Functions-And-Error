@@ -3,13 +3,7 @@ This `Error` smart contract is designed to demonstrate various error handling me
 Access.
  <h2>Features</h2>
     <ul>
-        <li><b>Public State Variables:</b>
-            <ul>
-                <li><code>maxValue</code>: Stores a maximum value that can be set by the contract owner.</li>
-                <li><code>counter</code>: A simple counter that can be incremented.</li>
-                <li><code>owner</code>: The address of the contract owner, set during contract deployment.</li>
-            </ul>
-        </li>
+        
         <li><b>Functions:</b>
             <ul>
                 <li><code>updatemaxValue</code>: Sets a new maximum value, only executable by the owner.</li>
