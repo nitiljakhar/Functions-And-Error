@@ -1,77 +1,75 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-contract SubscriptionService {
-    struct Subscriber {
-        address subscriberAddress;
-        uint256 subscriptionEnd;
-        bool isSubscribed;
+contract EducationLoan {
+
+    struct Student {
+        string name;
+        uint age;
+        string collegeName;
+        bool hasLoan;
     }
 
-    mapping(address => Subscriber) public subscribers;
-    address public owner;
-    uint256 public subscriptionFee;
-    uint256 public subscriptionDuration; // in seconds
+    mapping(address => Student) public students;
+    mapping(address => bool) public accounts;
 
-    constructor(uint256 _subscriptionFee, uint256 _subscriptionDuration) {
-        owner = msg.sender;
-        subscriptionFee = _subscriptionFee;
-        subscriptionDuration = _subscriptionDuration;
+    uint constant loanAmount = 7000;
+
+    event AccountCreated(address indexed studentAddress, string name, uint age);
+    event LoanSanctioned(address indexed studentAddress, uint amount);
+    event CollegeInformationUpdated(address indexed studentAddress, string collegeName);
+    event StudentDataUpdated(address indexed studentAddress, string name, uint age, string collegeName);
+
+    function createAccount(string memory _name, uint _age) public {
+        require(!accounts[msg.sender], "Account already exists");
+
+        students[msg.sender] = Student({
+            name: _name,
+            age: _age,
+            collegeName: "",
+            hasLoan: false
+        });
+        accounts[msg.sender] = true;
+
+        emit AccountCreated(msg.sender, _name, _age);
     }
 
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Not authorized");
-        _;
+    function sanctionLoan() public {
+        require(accounts[msg.sender], "Account does not exist");
+        require(!students[msg.sender].hasLoan, "Loan already sanctioned");
+
+        students[msg.sender].hasLoan = true;
+
+        // Assuming the loan amount is managed off-chain or via another smart contract
+        emit LoanSanctioned(msg.sender, loanAmount);
     }
 
-    modifier onlySubscriber() {
-        require(subscribers[msg.sender].isSubscribed, "Not subscribed");
-        _;
+    function updateCollegeInformation(string memory _collegeName) public {
+        require(accounts[msg.sender], "Account does not exist");
+
+        students[msg.sender].collegeName = _collegeName;
+
+        emit CollegeInformationUpdated(msg.sender, _collegeName);
     }
 
-    // Subscribe to the service
-    function subscribe() public payable {
-        require(msg.value == subscriptionFee, "Incorrect subscription fee");
+    function updateStudentData(string memory _name, uint _age, string memory _collegeName) public {
+        require(accounts[msg.sender], "Account does not exist");
 
-        Subscriber storage subscriber = subscribers[msg.sender];
-        
-        if (subscriber.isSubscribed) {
-            revert("Already subscribed");
-        }
+        Student storage student = students[msg.sender];
+        student.name = _name;
+        student.age = _age;
+        student.collegeName = _collegeName;
 
-        subscriber.subscriberAddress = msg.sender;
-        subscriber.subscriptionEnd = block.timestamp + subscriptionDuration;
-        subscriber.isSubscribed = true;
-
-        assert(subscriber.isSubscribed == true);
+        emit StudentDataUpdated(msg.sender, _name, _age, _collegeName);
     }
 
-    // Renew subscription
-    function renewSubscription() public payable onlySubscriber {
-        require(msg.value == subscriptionFee, "Incorrect subscription fee");
-
-        Subscriber storage subscriber = subscribers[msg.sender];
-        subscriber.subscriptionEnd += subscriptionDuration;
-
-        assert(subscriber.subscriptionEnd > block.timestamp);
+    function checkAssertions() public view {
+        // This function is just to demonstrate the use of assert()
+        assert(accounts[msg.sender] == true);
     }
 
-    // Cancel subscription
-    function cancelSubscription() public onlySubscriber {
-        Subscriber storage subscriber = subscribers[msg.sender];
-        subscriber.isSubscribed = false;
-
-        assert(subscriber.isSubscribed == false);
-    }
-
-    // Check if a user is subscribed
-    function isSubscribed(address _user) public view returns (bool) {
-        Subscriber storage subscriber = subscribers[_user];
-        return subscriber.isSubscribed && (subscriber.subscriptionEnd > block.timestamp);
-    }
-
-    // Withdraw funds from the contract
-    function withdraw() public onlyOwner {
-        payable(owner).transfer(address(this).balance);
+    function revertExample() public pure {
+        // This function is just to demonstrate the use of revert()
+        revert("This function always reverts");
     }
 }
