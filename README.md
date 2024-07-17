@@ -3,7 +3,6 @@ This `Error` smart contract is designed to demonstrate various error handling me
 Access.
  <h2>Features</h2>
     <ul>
-        
         <li><b>Functions:</b>
             <ul>
                 <li><code>updatemaxValue</code>: Sets a new maximum value, only executable by the owner.</li>
