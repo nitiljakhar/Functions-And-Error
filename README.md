@@ -5,10 +5,10 @@ Access.
     <ul>
         <li><b>Functions:</b>
             <ul>
-                <li><code>updatemaxValue</code>: Sets a new maximum value, only executable by the owner.</li>
-                <li><code>incrementCounter</code>: Increments the counter with an assertion check.</li>
-                <li><code>checkOwner</code>: Checks if an address is the owner's address, using <code>revert</code>.</li>
-                <li><code>safeDivide</code>: Divides two numbers with a <code>require</code> check to prevent division by zero.</li>
+                <li><code>createAccount</code>: This function allows a user to create an account.</li>
+                <li><code>sanctionLoan</code>: This function allows a user to sanction a loan.</li>
+                <li><code>updateCollegeInformation</code>:This function allows a user to update their college information.</li>
+                <li><code>updateStudentData</code>: This function allows a user to update their personal information.</li>
             </ul>
         </li>
     </ul>
